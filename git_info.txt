@@ -1,0 +1,5 @@
+Initialize the folder to git repo by using 
+>> git Init
+
+Add the file to repo by using 
+>> git add "file to add"
