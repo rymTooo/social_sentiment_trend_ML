@@ -3,3 +3,25 @@ Initialize the folder to git repo by using
 
 Add the file to repo by using 
 >> git add "file to add"
+
+Add git ignore file to the repo by accessing git bash and run the command 
+>> touch .gitignore
+
+Commit the changes by using
+>> git commit -m {message} 
+    --amend[this option add changes to the last commit not a new commit]
+    --allow-empty [Empty commit for triggering build]
+    --dry-run [for testing commit process]
+
+Review changes before commmit by
+>> git commit -v
+
+To create a new branch use
+>> git branch {branch name}
+
+Switching to the new branch by using
+>> git checkout {branch name}
+
+Remove all uncommited changes by
+>> git checkout .
+
