@@ -17,7 +17,7 @@ spark = SparkSession \
 # df = spark \
 #   .readStream \
 #   .format("kafka") \
-#   .option("kafka.bootstrap.servers", "kafka:29092") \
+#   .option("kafka.bootstrap.servers", "172.20.0.5:29092") \
 #   .option("subscribe", "test-topic") \
 #   .load()
 
@@ -34,7 +34,7 @@ mlflow.set_tracking_uri("http://172.20.0.3:5000")  # Replace with your MLflow se
 
 # Specify the model URI using model registry
 model_name = "NB_model"
-model_version = 3
+model_version = 1
 model_uri = f"models:/{model_name}/{model_version}"  # Replace with your model name and version
 model_path = "./naiveBayes_model.py"
 #load dependencies
@@ -54,7 +54,7 @@ print("this is test df columns >>>>>>>", test_df.columns)
 loaded_model = mlflow.pyfunc.spark_udf(
     spark, 
     model_uri=model_uri,
-    env_manager="conda"
+    env_manager="local"
     )
 print("-----------load model success----------------")
 # Predict using the loaded model
@@ -71,7 +71,7 @@ print(predictions)
 #     .outputMode("append") \
 #     .format("console") \
 #     .start()
-#     # .option("kafka.bootstrap.servers", "kafka:29092") \
+#     # .option("kafka.bootstrap.servers", "172.20.0.5:29092") \
 #     # .option("topic", "receive-topic") \
 #     # .option("checkpointLocation", "/tmp/checkpoints") \
 # query.awaitTermination()
