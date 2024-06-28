@@ -11,7 +11,7 @@ services:
       - "${MINIO_CONSOLE_PORT}:9001"
     networks:
       minio_network:
-        ipv4_address: 172.20.0.2 
+        ipv4_address: 172.20.0.2
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
