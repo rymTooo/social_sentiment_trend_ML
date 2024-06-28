@@ -1,1 +1,4 @@
  /download_deploy
+ **/dataset
+**/__pycache__
+**/processing_tools
