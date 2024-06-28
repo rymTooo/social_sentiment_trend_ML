@@ -3,12 +3,13 @@ FROM bitnami/spark:latest
 USER root
 
 COPY requirements.txt ./
-
 # Install Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install boto3
 
 COPY app/ /opt/spark-job/
+
+COPY sample_data.csv /opt/spark-job/sample_data.csv
 
 COPY deploy_kafka/run.sh /opt/bitnami/spark/
