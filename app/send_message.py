@@ -21,8 +21,6 @@ df = pd.DataFrame({"text":["this is example tweeet number 1 #first", "this is th
 json_data = df.to_json(orient='records')
 print(json_data)
 producer.send(topic, value = json_data)
-
-
 # Close the producer
 producer.flush()
 producer.close()
