@@ -11,7 +11,7 @@ services:
 
   kafka:
     container_name: kafka_test
-    image: 'confluentinc/cp-kafka:latest' 
+    image: 'confluentinc/cp-kafka:latest'
     depends_on:
       - zookeeper
     environment:
@@ -34,7 +34,8 @@ services:
     build:
       context: ..
       dockerfile: ./deploy_kafka/dockerfile.spark
-    image: bitnami/spark:latest
+    image: spark-master
+    # image: '9eda949da89b'
     depends_on:
       - kafka
     container_name: "spark-master"

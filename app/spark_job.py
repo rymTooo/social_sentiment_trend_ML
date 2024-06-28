@@ -36,7 +36,7 @@ mlflow.set_tracking_uri("http://172.20.0.3:5000")  # Replace with your MLflow se
 model_name = "NB_model"
 model_version = 3
 model_uri = f"models:/{model_name}/{model_version}"  # Replace with your model name and version
-
+model_path = "./naiveBayes_model.py"
 #load dependencies
 # dependencies = mlflow.pyfunc.get_model_dependencies(model_uri)
 # print("type ", type(dependencies))
@@ -54,7 +54,7 @@ print("this is test df columns >>>>>>>", test_df.columns)
 loaded_model = mlflow.pyfunc.spark_udf(
     spark, 
     model_uri=model_uri,
-    env_manager="local"
+    env_manager="conda"
     )
 print("-----------load model success----------------")
 # Predict using the loaded model
