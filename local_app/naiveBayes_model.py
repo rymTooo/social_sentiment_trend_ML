@@ -28,16 +28,19 @@ class NBmodel(mlflow.pyfunc.PythonModel):
     
     def load_context(self, context):
         # Load any artifacts required for the model
-        with open(context.artifacts["logprior"], "rb") as f:
-            self.logprior = pickle.load(f)
+        if os.path.exists(context.artifacts["logprior"][:-13]):
+            with open(context.artifacts["logprior"][:-13] + '/logprior.pkl', "rb") as f:
+                self.logprior = pickle.load(f)
         
-        with open(context.artifacts["loglikelihood"], "rb") as f:
-            self.loglikelihood = pickle.load(f)
+            with open(context.artifacts["logprior"][:-13] + '/loglikelihood.pkl', "rb") as f:
+                self.loglikelihood = pickle.load(f)
+        else:
+            print("------------- context.artifacts doesn't exists -------------")
 
     def predict(self, context, model_input):
         model_input = model_input['text']
-        result = self.classify_tweets(model_input, self.logprior, self.loglikelihood)
-        return result
+        predictions= self.classify_tweets(model_input, self.logprior, self.loglikelihood)
+        return predictions
     
 
     def fit(self, X_train, y_train):
@@ -127,22 +130,28 @@ class NBmodel(mlflow.pyfunc.PythonModel):
         p_count = 0
         n_count = 0
         neu_count = 0
+        lable_list = []
 
         for tweet in tweets:
+            label = 0
             prob = self.naive_bayes_predict(tweet, logprior, loglikelihood)
-            if prob <= 0:
-                n_count += 1
-            elif prob <= 1:
-                neu_count += 1
+            if prob <= -0.1:
+                # n_count += 1
+                label = -1
+            elif prob <= 0.1:
+                # neu_count += 1
+                label = 0
             else:
-                p_count += 1
+                # p_count += 1
+                label = 1
+            lable_list.append(label)
 
-        n = len(tweets)
-        p_count /= n
-        n_count /= n
-        neu_count /= n
+        # n = len(tweets)
+        # p_count /= n
+        # n_count /= n
+        # neu_count /= n
 
-        return {"positive": p_count, "neutral": neu_count, "negative": n_count}
+        return pd.DataFrame({"text":tweets, "label":lable_list}) #,{"positive": p_count, "neutral": neu_count, "negative": n_count}
 
     def test_naive_bayes(self, test_x, test_y, logprior, loglikelihood):
         y_hats = []
