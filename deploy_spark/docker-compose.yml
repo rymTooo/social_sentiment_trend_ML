@@ -50,6 +50,7 @@ services:
       - ./src:/src
       - ./data:/data
       - ./output:/output
+      - D:/Kafka_spark/app:/opt/spark-job
     networks:
       - minio_network
 
