@@ -17,7 +17,7 @@ topic = 'test-topic'
 #     producer.send(topic, value=message.encode('utf-8')) # send message to {topic name} and {message value.encode('uft-8')}
 #     print(f'Sent: {message}')
 count = 1
-df = pd.DataFrame({"text":["this is example tweeet number 1 #first", "this is the second one", f"{count}"]})
+df = pd.DataFrame({"text":["this is example tweeet number 1 #first bright and good", "this is the second one and should be really bad ", f"{count}"]})
 json_data = df.to_json(orient='records')
 print(json_data)
 producer.send(topic, value = json_data)

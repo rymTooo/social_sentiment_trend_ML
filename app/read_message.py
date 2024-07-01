@@ -4,7 +4,7 @@ from io import StringIO
 
 # Initialize the Kafka consumer
 consumer = KafkaConsumer(
-    'test-topic',
+    'receive-topic',
     bootstrap_servers='localhost:9092',
     auto_offset_reset='earliest',
     enable_auto_commit=True,
@@ -16,7 +16,7 @@ consumer = KafkaConsumer(
 for message in consumer:
     try:
         df = pd.read_json(message.value)
-        print(df['text'])
+        print(df)
     except Exception as error:
         print(">>>", error)
 
