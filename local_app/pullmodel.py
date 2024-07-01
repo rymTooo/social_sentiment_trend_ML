@@ -5,10 +5,10 @@ import pandas as pd
 
 os.environ['AWS_ACCESS_KEY_ID'] = 'CWRUnvN2zh8rqE7pidsw'
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'V8RfUWQlnB4QUa7rGHbvfHjhjLiOutRa8AZ9TPvy'
-os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://172.20.0.2:9000' #'http://172.20.0.2:9000' # http://localhost:9000
+os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:9000' #'http://172.20.0.2:9000' # http://localhost:9000
 
 # Set the tracking URI to your MLflow server
-mlflow.set_tracking_uri("http://172.20.0.3:5000")  # Replace with your MLflow server URI
+mlflow.set_tracking_uri("http://localhost:5000")  # Replace with your MLflow server URI
 
 # Specify the model URI using model registry
 model_name = "NB_model"
@@ -25,7 +25,7 @@ loaded_model = mlflow.pyfunc.load_model(model_uri)
 
 # Use the model for predictions
 
-data2 = pd.read_csv("samaple_data.csv", encoding='utf-8')
+data2 = pd.read_csv("resources/samaple_data.csv", encoding='utf-8')
 data2 = data2[['text']]
 # data =pd.DataFrame({'text':["ohm is a good :) person #gohome", "I want to go home early sad #gohome", "I bet this one is negative for sure #gohome"]})
 

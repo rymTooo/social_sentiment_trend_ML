@@ -23,7 +23,7 @@ limit = 1000
 rd_state = 10
 
 dataset = pd.read_csv(dataset_path)
-dataset = pd.concat([dataset.head(limit), dataset.tail(limit)])
+# dataset = pd.concat([dataset.head(limit), dataset.tail(limit)])
 dataset['label'] = dataset['label'].apply(modify_label)
 
 
@@ -36,16 +36,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,random_s
 nb = NBmodel()
 nb.fit(X_train, y_train)
 
-prediction = nb.predict(context=None, model_input=X_train)
+predictions = nb.predict(context=None, model_input=X_train)
 scores = nb.score(X_test['text'], y_test)
 
 #test result on sample data
-data2 = pd.read_csv("D:/Sentiment_analysis_model/resources/sample_data.csv", encoding='utf-8')
-data2 = data2[['text']]
-print("prediction : ", nb.predict(context=None, model_input=data2))
+# data2 = pd.read_csv("D:/Sentiment_analysis_model/resources/sample_data.csv", encoding='utf-8')
+# data2 = data2[['text']]
+# print("prediction : ", nb.predict(context=None, model_input=data2)["result"])
 # prediction :  {'positive': 0.31885, 'neutral': 0.1471, 'negative': 0.53405}
 
-print("fit success")
+
 
 #sample for mlflow model signature
 sample_input = pd.DataFrame({"text":["this is a sample positive tweet", "and this is negative :("]})
