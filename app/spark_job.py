@@ -5,30 +5,22 @@ from pyspark.sql.functions import struct, col
 import mlflow 
 import os
 import pandas
+from naiveBayes_model import NBmodel 
 import nltk
+from pyspark.sql.functions import from_json
+from pyspark.sql.types import StructType, StringType
+import json
+
 
 # might need to change localhost to something else
 spark = SparkSession \
     .builder \
+    .master("local") \
     .appName("StructuredNetworkWordCount") \
     .config("spark.driver.host", "spark-master")\
     .getOrCreate()
 
-
 nltk.download('stopwords')
-#**** may use read instead of readstream ****
-df = spark \
-  .readStream \
-  .format("kafka") \
-  .option("kafka.bootstrap.servers", "172.20.0.5:29092") \
-  .option("subscribe", "test-topic") \
-  .load()
-
-print("this is input df type >> ", type(df))
-
-df = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-# print("this is df columns : ", df.columns)
-# print("this is df type >>>>>>>>>", type(df))
 
 os.environ['AWS_ACCESS_KEY_ID'] = 'CWRUnvN2zh8rqE7pidsw'
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'V8RfUWQlnB4QUa7rGHbvfHjhjLiOutRa8AZ9TPvy'
@@ -39,72 +31,67 @@ mlflow.set_tracking_uri("http://172.20.0.3:5000")  # Replace with your MLflow se
 
 # Specify the model URI using model registry
 model_name = "NB_model"
-model_version = 3
+model_version = 2
 model_uri = f"models:/{model_name}/{model_version}"  # Replace with your model name and version
 model_path = "./naiveBayes_model.py"
-#load dependencies
-# dependencies = mlflow.pyfunc.get_model_dependencies(model_uri)
-# print("type ", type(dependencies))
-# print("this is dependencies ", dependencies)
-# subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", dependencies])
 
-# >>> load and prediction method for spark ML lib
-# loaded_model = mlflow.spark.load_model(model_uri, spark=spark)
-# predictions = loaded_model.predict(df)
-# print(predictions)
-test_df = pandas.DataFrame({"text":["this is a sample positive tweet", "and this is negative :("]})
-# test_df = pandas.read_csv("sample_data.csv", encoding='utf-8')
-# test_df = spark.createDataFrame(test_df)
-print("this is test df type >>>>>>>>>>", type(test_df))
-# print("this is test df schema>>>>>>>")
-# test_df.printSchema()
+loaded_model = mlflow.pyfunc.load_model(model_uri)
 
-loaded_model = mlflow.pyfunc.spark_udf(
-    spark, 
-    model_uri=model_uri,
-    env_manager="local"
-    )
-print("-----------load model success----------------")
-
-# Predict using the loaded model
-predictions = df.withColumn('predictions', loaded_model(col('value')))
-print("type of predictinos >> ", type(predictions))
-print("-----------prediction success----------------")
-
-# predictions = df.withColumn('predictions', loaded_model(struct(*map(col, df.columns))))
-# predictions.printSchema()
-# print(predictions)
-# df = predictions.toPandas()
-# print(df)
+"""
+# alternative method for loading model using minio client
+client = minio.Minio(
+    "localhost:9000",
+    access_key="CWRUnvN2zh8rqE7pidsw",
+    secret_key="V8RfUWQlnB4QUa7rGHbvfHjhjLiOutRa8AZ9TPvy",
+    secure=False  # Set to True if using HTTPS
+)
+bucket_name = "mlflow"
+object_name = "1/4c11f07b46654cda88b3840d9f655732/artifacts/NB_sentiment_analysis_model/python_model.pkl"
+download_path = "/model/python_model.pkl"
+client.fget_object(bucket_name, object_name, download_path)
+print(f"File '{object_name}' downloaded successfully to '{download_path}'.")
 
 
-
-# loaded_model = mlflow.pyfunc.load_model(model_uri)
-# predictions = loaded_model.predict(test_df)
-# print(predictions)
-
-# predictions = spark.createDataFrame(predictions)
-# print("this is prediction type >> ", type(predictions))
+"""
 
 
+def process_row(row):
+    if row == None or len(row) <= 0:
+        print(row)
+        print("exit ---------------------")
+        return 0
+    df = pandas.DataFrame(json.loads(row[0]['value_string']))  
+    print(df)
+    predictions = loaded_model.predict(df)
+    print(predictions)
+    return predictions
 
-# result variable(maybe a dataframe) . write stream / write . output mode . format . start
-# query = predictions \
-#     .writeStream\
-#     .outputMode("append") \
-#     .format("console") \
+
+#**** may use read instead of readstream ****
+df = spark \
+  .readStream \
+  .format("kafka") \
+  .option("kafka.bootstrap.servers", "172.20.0.5:29092") \
+  .option("subscribe", "test-topic") \
+  .load()
+df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+df = df.withColumn("value_string", col("value").cast("string"))
+df.printSchema()
+
+# query = df\
+#     .writeStream \
+#     .foreach(process_row) \
 #     .start()
-#     # .option("kafka.bootstrap.servers", "172.20.0.5:29092") \
-#     # .option("topic", "receive-topic") \
-#     # .option("checkpointLocation", "/tmp/checkpoints") \
-# query.awaitTermination()
+    # .option("update") \
+    # .format("console") \
+# query = df.writeStream.foreachBatch(
+#     lambda df, epoch_id: process_row(df.collect())
+# ).option("topic", kafka_topic) \
+# .start()
 
-query = predictions\
-    .writeStream \
-    .outputMode("update") \
-    .format("console") \
-    .option("truncate", False) \
-    .start()
+
+query = df.writeStream.foreachBatch(
+    lambda df, epoch_id: process_row(df.collect())
+).start()
 query.awaitTermination()
-
 spark.stop()

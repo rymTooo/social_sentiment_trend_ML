@@ -8,7 +8,7 @@ import mlflow
 # mlflow related variable
 os.environ['AWS_ACCESS_KEY_ID'] = 'CWRUnvN2zh8rqE7pidsw'
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'V8RfUWQlnB4QUa7rGHbvfHjhjLiOutRa8AZ9TPvy'
-os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://172.20.0.2:9000' #minio api ip:port
+os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:9000' #minio api ip:port
 model_name = "NB_model"
 model_version = 3
 model_uri = f"models:/{model_name}/{model_version}"  # Replace with your model name and version
@@ -18,41 +18,24 @@ receive_topic = 'test-topic'
 send_topic = 'receive-topic'
 
 
-mlflow.set_tracking_uri("http://172.20.0.3:5000")
+mlflow.set_tracking_uri("http://localhost:5000")
 loaded_model = mlflow.pyfunc.load_model(model_uri)
 
 # Create a Kafka producer
 producer = KafkaProducer(
-    bootstrap_servers='172.20.0.5:29092',
+    bootstrap_servers='localhost:9092',
     value_serializer=lambda v: str(v).encode('utf-8')
 ) #locate kafka server by KAFKA_ADVERTISED_LISTENERS variable
 
 # Initialize the Kafka consumer
 consumer = KafkaConsumer(
     receive_topic,
-    bootstrap_servers='172.20.0.5:29092',
+    bootstrap_servers='localhost:9092',
     auto_offset_reset='earliest',
     enable_auto_commit=True,
     group_id='my-group',
     value_deserializer=lambda x: StringIO(x.decode('utf-8'))
 )
-
-
-# # Consume messages from the topic
-# for message in consumer:
-#     try:
-#         df = pd.read_json(message.value)
-#         prediction = loaded_model.predict(df)
-#         json_data = prediction.to_json(orient='records')
-#         producer.send(send_topic, value = json_data)
-#         # Close the producer
-#         producer.flush()
-
-#     except Exception as error:
-#         print(">>>", error)
-
-# producer.close()
-# consumer.close()
 while True:
     try:
         # Consume messages from the topic
@@ -73,16 +56,5 @@ while True:
         # Ensure the producer and consumer are properly closed
         producer.flush()
         print("successfully send message !!!!!!")
-
-
-
-# Define the topic
-
-
-# Send messages to the topic
-# for i in range(5):
-#     message = f'Message {i}'
-#     producer.send(topic, value=message.encode('utf-8')) # send message to {topic name} and {message value.encode('uft-8')}
-#     print(f'Sent: {message}')
 
 

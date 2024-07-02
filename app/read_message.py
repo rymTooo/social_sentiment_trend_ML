@@ -2,9 +2,12 @@ from kafka import KafkaConsumer
 import pandas as pd
 from io import StringIO
 
+topic_to_read = "receive-topic"
+
+
 # Initialize the Kafka consumer
 consumer = KafkaConsumer(
-    'receive-topic',
+    topic_to_read,
     bootstrap_servers='localhost:9092',
     auto_offset_reset='earliest',
     enable_auto_commit=True,
