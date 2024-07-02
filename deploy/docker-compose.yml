@@ -43,7 +43,7 @@ services:
       - MLFLOW_S3_IGNORE_TLS=true
     command: >
       mlflow server
-      --backend-store-uri file:///D:/Kafka_spark/mlruns
+      --backend-store-uri sqlite:///mlflow.db
       --host 0.0.0.0
       --default-artifact-root s3://${MLFLOW_BUCKET_NAME}
 #set backend uri >> some DB, set artifact to minio(s3) >> {ip}://{bucket name}
@@ -66,10 +66,7 @@ services:
 
   kafka:
     container_name: kafka_test
-    # image: 'confluentinc/cp-kafka:latest'
-    build:
-      context: .
-      dockerfile: dockerfile.kafka
+    image: 'confluentinc/cp-kafka:latest'
     depends_on:
       - zookeeper
     environment:
@@ -79,9 +76,9 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    # volumes:
-    #   - ./entrypoint.sh:/usr/bin/entrypoint.sh
-    # entrypoint: ["bash", "/usr/bin/entrypoint.sh"]
+    volumes:
+      - ./entrypoint.sh:/usr/bin/entrypoint.sh
+    entrypoint: ["bash", "/usr/bin/entrypoint.sh"]
     ports:
       - "9092:9092"
       - "29092:29092"
