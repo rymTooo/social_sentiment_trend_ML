@@ -1,35 +1,4 @@
 services:
-  # zookeeper:
-  #   image: 'confluentinc/cp-zookeeper:latest'
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
-  #     ZOOKEEPER_TICK_TIME: 2000
-  #   ports:
-  #     - "2181:2181"
-  #   networks:
-  #     - minio_network
-
-  # kafka:
-  #   container_name: kafka_test
-  #   image: 'confluentinc/cp-kafka:latest'
-  #   depends_on:
-  #     - zookeeper
-  #   environment:
-  #     KAFKA_BROKER_ID: 1
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  #   volumes:
-  #     - ./entrypoint.sh:/usr/bin/entrypoint.sh
-  #   entrypoint: ["bash", "/usr/bin/entrypoint.sh"]
-  #   ports:
-  #     - "9092:9092"
-  #     - "29092:29092"
-  #   networks:
-  #     - minio_network
-
   spark-master:
     build:
       context: ..
@@ -54,9 +23,19 @@ services:
     networks:
       - minio_network
 
+  # spark-worker:
+  #   image: docker.io/bitnami/spark:3.5
+  #   environment:
+  #     - SPARK_MODE=worker
+  #     - SPARK_MASTER_URL=spark://spark:7077
+  #     - SPARK_WORKER_MEMORY=1G
+  #     - SPARK_WORKER_CORES=1
+  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
+  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
+  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+  #     - SPARK_SSL_ENABLED=no
+  #     - SPARK_USER=spark
+
 networks:
   minio_network:
     external: true
-
-volumes:
-  spark_volume:
