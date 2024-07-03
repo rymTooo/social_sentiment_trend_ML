@@ -34,7 +34,7 @@ Since the model data won't be in repository, you will need to train the model on
 
 1. up docker compose for minio, mlflow, kafka, and zookeeper
     ```shell
-    docker-compose up --build -d
+    docker-compose -f ./deploy/docker-compose.yml up --build -d
 
     ```
 2. Logging in to minio and mlflow browser interface
@@ -79,8 +79,7 @@ You should now have model saved and ready to go, let start spark container and t
 
 2. Run spark container using
     ```shell
-    #assuming you are in spark_deploy folder
-    docker-compose up --build
+    docker-compose -f ./deploy_spark/docker-compose.yml up --build -d
     ```
 3. Execute in to spark container
     ```shell
