@@ -10,7 +10,7 @@ import pickle
 # this part is the environmental var for connecting mlflow to minio 
 os.environ['AWS_ACCESS_KEY_ID'] = 'CWRUnvN2zh8rqE7pidsw'
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'V8RfUWQlnB4QUa7rGHbvfHjhjLiOutRa8AZ9TPvy'
-os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:9000'
+os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://s3:9000'
 
 # this method is ONLY used for changing negative label from -1 >>> to 0
 def modify_label(label):
@@ -18,12 +18,12 @@ def modify_label(label):
         label = 0
     return label
 
-dataset_path = "./resources/sample_data.csv"
+dataset_path = "./sample_data.csv"
 limit = 1000 # limit the training data to limit*2 size
 rd_state = 10 # random state variable for train test split
 
 dataset = pd.read_csv(dataset_path)
-dataset = pd.concat([dataset.head(limit), dataset.tail(limit)]) # reduce the size of dataset to limit*2
+# dataset = pd.concat([dataset.head(limit), dataset.tail(limit)]) # reduce the size of dataset to limit*2
 dataset['label'] = dataset['label'].apply(modify_label) # change negative label from -1 to 0
 
 
@@ -41,7 +41,7 @@ scores = nb.score(X_test['text'], y_test)
 
 #---------------------------------------mlflow part-------------------------------------------
 # mlflow config
-tracking_uri = "http://localhost:5000" #use mlflow docker ip address
+tracking_uri = "http://tracking_server:5000" #use mlflow docker ip address
 experiment_name = "NaiveBayes Sentiment analysis"
 run_name = "nb model"
 artifact_path = "NB_sentiment_analysis_model"
