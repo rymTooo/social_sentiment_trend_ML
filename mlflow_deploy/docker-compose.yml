@@ -8,12 +8,11 @@ services:
     ports:
       - "${MLFLOW_PORT}:5000"
     networks:
-      minio_network:
-        ipv4_address: 172.20.0.3
+      - minio_network
     environment:
       - AWS_ACCESS_KEY_ID=${MINIO_ACCESS_KEY} #minio accesskey
       - AWS_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY} #minio secret accesskey
-      - MLFLOW_S3_ENDPOINT_URL= http://172.20.0.2:${MINIO_PORT} #point to minio >> in the form of http://{ip}:{api port}
+      - MLFLOW_S3_ENDPOINT_URL= http://s3:${MINIO_PORT} #point to minio >> in the form of http://{ip}:{api port}
       - MLFLOW_S3_IGNORE_TLS=true
     command: >
       mlflow server

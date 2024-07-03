@@ -27,10 +27,9 @@ nltk.download('stopwords')
 
 os.environ['AWS_ACCESS_KEY_ID'] = 'CWRUnvN2zh8rqE7pidsw'
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'V8RfUWQlnB4QUa7rGHbvfHjhjLiOutRa8AZ9TPvy'
-os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://172.20.0.2:9000' #minio api ip:port
-
+os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://s3:9000' #minio api ip:port
 # Set the tracking URI to your MLflow server
-mlflow.set_tracking_uri("http://172.20.0.3:5000")  # Replace with your MLflow server URI
+mlflow.set_tracking_uri("http://tracking_server:5000")  # Replace with your MLflow server URI
 
 # Specify the model URI using model registry
 model_name = "NB_model"
