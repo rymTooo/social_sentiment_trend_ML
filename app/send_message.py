@@ -13,9 +13,12 @@ producer = KafkaProducer(
 topic = 'raw-data-topic'
 df = pd.DataFrame(
     {
-        "text":["this is example tweeet number 1 #first surely it is good", 
+        "snippet":["this is example tweeet number 1 #first surely it is good", 
                 "this is the second one bad and worse as hell", 
-                "123"]
+                "123"],
+        "query":["tech",
+                 "tech",
+                 "tech"]
     }
 )
 # df = pd.read_csv("resources/sample_data.csv")[['text']]
