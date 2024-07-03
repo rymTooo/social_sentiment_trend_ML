@@ -14,15 +14,15 @@ This guide will walk you through necessary steps to set up the pipeline.
 ### Installation
 Create conda env and install necessary dependencies <br>
 
-```
+```shell
 conda create -n ml python=3.11.9
 
 ```
-```
+```shell
 conda activate ml
 
 ```
-```
+```shell
 pip install mlflow==2.14.1 cloudpickle==3.0.0 nltk==3.8.1 numpy==1.26.4 pandas==2.2.2 scikit-learn==1.5.0 scipy==1.13.1 minio==7.2.7 boto3==1.34.134 pyspark==3.5.1 psutil==6.0.0
 
 ```
