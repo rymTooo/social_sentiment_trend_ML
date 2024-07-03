@@ -1,10 +1,11 @@
-# Sentiment analysi
+# Sentiment analysis
 <p>This repository include the file necessary in the ML pipeline. The included platform? framework? are</p>
 
-    - mlflow : platform for model management
-    - minio  : object storage for storing model artifacts
-    - kafka  : message broker for 
-    - spark  : paltform for distributed computation, used for model prediciton
+    
+- **mlflow** : platform for model management
+- **minio**  : object storage for storing model artifacts
+- **kafka**  : message broker for send receive data between source and spark
+- **spark**  : paltform for distributed computation, used for model prediciton
 
 ## Getting started
 This guide will walk you through necessary steps to set up the pipeline.
@@ -32,21 +33,14 @@ pip install mlflow==2.14.1 cloudpickle==3.0.0 nltk==3.8.1 numpy==1.26.4 pandas==
 Since the model data won't be in repository, you will need to train the model once. <br>
 
 1. up docker compose for minio, mlflow, kafka, and zookeeper
-    ```
+    ```shell
     docker-compose up --build -d
 
     ```
 2. Logging in to minio and mlflow browser interface
-    - Minio
-    ```
-    localhost:9000
+    - [Minio](http://localhost:9000)
+    - [MLflow](http://localhost:5000)
 
-    ```
-    - MLflow
-    ```
-    localhost:5000
-
-    ```
 3. Set **minio bucket** and **access key** <br>
     Create the bucket name **mlflow**<Br>
     Create the access key and set the configuration to:
@@ -62,11 +56,54 @@ Since the model data won't be in repository, you will need to train the model on
     limit = 1000 # limit the training data to limit*2 size
     rd_state = 10 # random state variable for train test split
     ```
-    run **NBpipeline.py**
-5. Run spark container using
+    run **NBpipeline.py**, you should see the model showing up in mlflow brower UI 
+    ```shell
+    python local_app/NBpipeline.py
     ```
+
+You should now have model saved and ready to go, let start spark container and try predicting with our model.
+
+1. Create kafka topics
+
+    execute into kafka container
+    ```shell
+    docker exec -it kafka_test /bin/bash
+    ```
+
+    Create the topic
+    ```shell
+    kafka-topics --create --topic raw-data-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1 \
+
+    kafka-topics --create --topic prediction-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+    ```
+
+2. Run spark container using
+    ```shell
     #assuming you are in spark_deploy folder
     docker-compose up --build
     ```
-6. 
+3. Execute in to spark container
+    ```shell
+    docker exec -it spark-master /bin/bash
+    ```
 
+4. run the script
+    ```
+    ./run.sh
+    ```
+    >you should now see spark console load some dependencies and it should be ready to receive and process incoming data
+
+Let's try send data to spark and see if it return the result
+
+1. Run ***read_message.py*** locally
+    ```shell
+    python local_app/read_message.py
+    ```
+
+2. Open another terminal and Run ***send_message.py*** 
+    ```shell
+    python local_app/send_message.py
+    ```
+> ***send_message.py*** will send data to raw-data-topic for spark to process while ***read_message.py*** will continously read any message from prediction-topic which spark will write prediction result to.
+
+3. Check the result in spark terminal, it should show the prediction on data from the model.
