@@ -8,9 +8,7 @@ import pandas
 from naiveBayes_model import NBmodel 
 import nltk
 from pyspark.sql.functions import from_json
-from pyspark.sql.types import StructType, StringType
 import json
-
 
 # might need to change localhost to something else
 spark = SparkSession \
@@ -19,6 +17,11 @@ spark = SparkSession \
     .appName("StructuredNetworkWordCount") \
     .config("spark.driver.host", "spark-master")\
     .getOrCreate()
+
+#define kafka topic
+input_topic = "raw-data-topic"
+output_topic = "prediction-topic"
+
 
 nltk.download('stopwords')
 
@@ -54,6 +57,7 @@ print(f"File '{object_name}' downloaded successfully to '{download_path}'.")
 
 """
 
+results = []
 
 def process_row(row):
     if row == None or len(row) <= 0:
@@ -64,34 +68,39 @@ def process_row(row):
     print(df)
     predictions = loaded_model.predict(df)
     print(predictions)
-    return predictions
+    # results.append({"text": predictions['text'], "label": predictions['label']})
+    results.append({"value": predictions.to_json(orient='records')})
+    
+    predictions_df = spark.createDataFrame(results)
+
+    # Write predictions to Kafka
+    predictions_df.selectExpr("CAST(value AS STRING)") \
+        .write \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "kafka:29092") \
+        .option("topic", output_topic) \
+        .save()
+    
+
+    return predictions_df
 
 
 #**** may use read instead of readstream ****
 df = spark \
   .readStream \
   .format("kafka") \
-  .option("kafka.bootstrap.servers", "172.20.0.5:29092") \
-  .option("subscribe", "test-topic") \
+  .option("kafka.bootstrap.servers", "kafka:29092") \
+  .option("subscribe", input_topic) \
   .load()
 df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 df = df.withColumn("value_string", col("value").cast("string"))
 df.printSchema()
 
-# query = df\
-#     .writeStream \
-#     .foreach(process_row) \
-#     .start()
-    # .option("update") \
-    # .format("console") \
-# query = df.writeStream.foreachBatch(
-#     lambda df, epoch_id: process_row(df.collect())
-# ).option("topic", kafka_topic) \
-# .start()
 
+query = df.writeStream \
+    .foreachBatch(
+        lambda df, epoch_id: process_row(df.collect())
+    ).start()
 
-query = df.writeStream.foreachBatch(
-    lambda df, epoch_id: process_row(df.collect())
-).start()
 query.awaitTermination()
 spark.stop()
