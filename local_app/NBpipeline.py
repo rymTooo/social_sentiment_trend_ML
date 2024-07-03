@@ -18,9 +18,10 @@ def modify_label(label):
         label = 0
     return label
 
-dataset_path = "./resources/sample_data.csv"
-limit = 1000 # limit the training data to limit*2 size
-rd_state = 10 # random state variable for train test split
+dataset_path = "resources/"
+limit = 100000 # limit the training data to limit*2 size
+rd_state = 20 # random state variable for train test split
+ratio = 0.05
 
 dataset = pd.read_csv(dataset_path)
 # dataset = pd.concat([dataset.head(limit), dataset.tail(limit)]) # reduce the size of dataset to limit*2
@@ -31,7 +32,7 @@ X=dataset[['text']] # choose the column with content
 # print("this is type of X", type(X))
 y=dataset['label'] # y is of type list, NOT dataframe
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,random_state=rd_state)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=ratio,random_state=rd_state)
 
 nb = NBmodel()
 nb.fit(X_train, y_train) # train the model
@@ -53,9 +54,10 @@ sample_prediction = nb.predict(context=None,model_input=sample_input)
 
 # Define the model hyperparameters
 params = {
-    "datasize": limit*2,
+    "datasize": len(dataset),
     "random_state": rd_state,
     "logprior":nb.logprior,
+    "train test ratio":ratio,
     # "loglikelihood":nb.loglikelihood # loglikelihood is too large to store as params
 }
 
@@ -103,4 +105,3 @@ with mlflow.start_run(run_name=run_name):
         input_example=sample_input,
         registered_model_name="NB_model",
     )
-
