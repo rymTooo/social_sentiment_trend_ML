@@ -2,7 +2,7 @@ from kafka import KafkaConsumer
 import pandas as pd
 from io import StringIO
 
-topic_to_read = "receive-topic"
+topic_to_read = "prediction-topic"
 
 
 # Initialize the Kafka consumer

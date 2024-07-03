@@ -10,7 +10,7 @@ producer = KafkaProducer(
 #locate kafka server by KAFKA_ADVERTISED_LISTENERS variable
 
 # Define the topic
-topic = 'test-topic'
+topic = 'raw-data-topic'
 df = pd.DataFrame(
     {
         "text":["this is example tweeet number 1 #first surely it is good", 

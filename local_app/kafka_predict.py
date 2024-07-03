@@ -14,8 +14,8 @@ model_version = 3
 model_uri = f"models:/{model_name}/{model_version}"  # Replace with your model name and version
 
 #topics
-receive_topic = 'test-topic'
-send_topic = 'receive-topic'
+receive_topic = 'raw-data-topic'
+send_topic = 'prediction-topic'
 
 
 mlflow.set_tracking_uri("http://localhost:5000")
