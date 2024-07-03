@@ -64,16 +64,17 @@ def process_row(row):
         print("exit ---------------------")
         return 0
     df = pandas.DataFrame(json.loads(row[0]['value_string']))  
+    df['text'] = df['snippet']
     print(df)
-    predictions = loaded_model.predict(df)
+    predictions = loaded_model.predict(df[['text']])
     print(predictions)
     # results.append({"text": predictions['text'], "label": predictions['label']})
-    results.append({"value": predictions.to_json(orient='records')})
+    results.append({"value": predictions.to_json(orient='records'), "key":df['query'][0]})
     
     predictions_df = spark.createDataFrame(results)
-
+    predictions_df.printSchema()
     # Write predictions to Kafka
-    predictions_df.selectExpr("CAST(value AS STRING)") \
+    predictions_df.selectExpr("CAST(value AS STRING)", "CAST(key AS STRING)") \
         .write \
         .format("kafka") \
         .option("kafka.bootstrap.servers", "kafka:29092") \
