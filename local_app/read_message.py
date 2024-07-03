@@ -19,6 +19,8 @@ consumer = KafkaConsumer(
 for message in consumer:
     try:
         df = pd.read_json(message.value)
+        df['hashtag'] = message.key.decode('utf-8')
+        df.to_csv("resources/test.csv")
         print(df)
     except Exception as error:
         print(">>>", error)
