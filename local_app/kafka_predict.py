@@ -4,6 +4,10 @@ from kafka import KafkaConsumer
 from io import StringIO
 import os
 import mlflow
+from dotenv import load_dotenv
+
+#load env
+load_dotenv()
 
 # mlflow related variable
 os.environ['AWS_ACCESS_KEY_ID'] = 'CWRUnvN2zh8rqE7pidsw'
