@@ -1,0 +1,41 @@
+services:
+  spark-master:
+    build:
+      context: ..
+      dockerfile: ./deploy_spark/dockerfile.spark
+    image: spark-master
+    container_name: "spark-master"
+    environment:
+      - SPARK_MODE=master
+      - SPARK_LOCAL_IP=spark-master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - "7077:7077"
+      - "8081:8080"
+    volumes:
+      - ./src:/src
+      - ./data:/data
+      - ./output:/output
+      - D:/Kafka_spark/app:/opt/spark-job
+    networks:
+      - minio_network
+
+  # spark-worker:
+  #   image: docker.io/bitnami/spark:3.5
+  #   environment:
+  #     - SPARK_MODE=worker
+  #     - SPARK_MASTER_URL=spark://spark:7077
+  #     - SPARK_WORKER_MEMORY=1G
+  #     - SPARK_WORKER_CORES=1
+  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
+  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
+  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+  #     - SPARK_SSL_ENABLED=no
+  #     - SPARK_USER=spark
+
+networks:
+  minio_network:
+    external: true

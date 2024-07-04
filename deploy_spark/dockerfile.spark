@@ -1,0 +1,13 @@
+FROM bitnami/spark:latest
+
+USER root
+
+COPY requirements.txt ./
+# Install Python packages
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ /opt/spark-job/
+
+COPY resources/sample_data.csv /opt/spark-job/sample_data.csv
+
+COPY deploy_spark/run.sh /opt/bitnami/spark/
