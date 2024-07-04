@@ -24,7 +24,7 @@ def modify_label(label):
 dataset_path = "resources/processed_data.csv"
 limit = 100000 # limit the training data to limit*2 size
 rd_state = 20 # random state variable for train test split
-ratio = os.getenv("TRAIN_TEST_RATIO")
+ratio = float(os.getenv("TRAIN_TEST_RATIO"))
 
 dataset = pd.read_csv(dataset_path)
 dataset = pd.concat([dataset.head(limit), dataset.tail(limit)]) # reduce the size of dataset to limit*2
@@ -40,7 +40,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=ratio,random
 nb = NBmodel()
 nb.fit(X_train, y_train) # train the model
 
-predictions = nb.predict(context=None, model_input=X_train) # make prediction
+# predictions = nb.predict(context=None, model_input=X_train) # make prediction
 scores = nb.score(X_test['text'], y_test)
 
 #---------------------------------------mlflow part-------------------------------------------
