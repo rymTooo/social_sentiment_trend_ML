@@ -5,12 +5,15 @@ import os
 import mlflow
 from mlflow.models import infer_signature
 import pickle
+from dotenv import load_dotenv
 
+#load env
+load_dotenv()
+server_ip = os.getenv('SERVER_IP')
+mlflow_port = os.getenv('MLFLOW_PORT')
 
-# this part is the environmental var for connecting mlflow to minio 
-os.environ['AWS_ACCESS_KEY_ID'] = 'CWRUnvN2zh8rqE7pidsw'
-os.environ['AWS_SECRET_ACCESS_KEY'] = 'V8RfUWQlnB4QUa7rGHbvfHjhjLiOutRa8AZ9TPvy'
-os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://s3:9000'
+print("server port >> ", server_ip)
+print("mlflow port >> ", mlflow_port)
 
 # this method is ONLY used for changing negative label from -1 >>> to 0
 def modify_label(label):
@@ -18,13 +21,13 @@ def modify_label(label):
         label = 0
     return label
 
-dataset_path = "./sample_data.csv"
+dataset_path = "resources/processed_data.csv"
 limit = 100000 # limit the training data to limit*2 size
-rd_state = 10 # random state variable for train test split
-ratio = 0.05
+rd_state = 20 # random state variable for train test split
+ratio = float(os.getenv("TRAIN_TEST_RATIO"))
 
 dataset = pd.read_csv(dataset_path)
-# dataset = pd.concat([dataset.head(limit), dataset.tail(limit)]) # reduce the size of dataset to limit*2
+dataset = pd.concat([dataset.head(limit), dataset.tail(limit)]) # reduce the size of dataset to limit*2
 dataset['label'] = dataset['label'].apply(modify_label) # change negative label from -1 to 0
 
 
@@ -37,15 +40,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=ratio,random
 nb = NBmodel()
 nb.fit(X_train, y_train) # train the model
 
-predictions = nb.predict(context=None, model_input=X_train) # make prediction
+# predictions = nb.predict(context=None, model_input=X_train) # make prediction
 scores = nb.score(X_test['text'], y_test)
 
 #---------------------------------------mlflow part-------------------------------------------
 # mlflow config
-tracking_uri = "http://tracking_server:5000" #use mlflow docker ip address
-experiment_name = "NaiveBayes Sentiment analysis"
-run_name = "nb model"
-artifact_path = "NB_sentiment_analysis_model"
+tracking_uri = f"http://{server_ip}:{mlflow_port}" #use mlflow docker ip address
+experiment_name = os.getenv('EXPERIMENT_NAME')
+run_name = os.getenv('RUN_NAME')
+artifact_path = os.getenv('ARTIFACT_PATH')
 
 #sample for mlflow model signature
 sample_input = pd.DataFrame({"text":["this is a sample positive tweet", "and this is negative :("]})
@@ -103,5 +106,5 @@ with mlflow.start_run(run_name=run_name):
         artifact_path= artifact_path, #artifact folder name 
         signature=signature,
         input_example=sample_input,
-        registered_model_name="NB_model",
+        registered_model_name=os.getenv("REGISTERED_MODEL_NAME"),
     )
