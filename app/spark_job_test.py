@@ -24,6 +24,7 @@ spark = SparkSession \
 load_dotenv()
 server_ip = os.getenv('SERVER_IP')
 mlflow_port = os.getenv('MLFLOW_PORT')
+kafka_port = os.getenv('KAFKA_CLIENT_PORT')
 
 #define kafka topic
 input_topic = "test-raw-data-topic"
@@ -84,7 +85,7 @@ def process_row(row):
     predictions_df.selectExpr("CAST(value AS STRING)") \
         .write \
         .format("kafka") \
-        .option("kafka.bootstrap.servers", "kafka:29092") \
+        .option("kafka.bootstrap.servers", f"{server_ip}:{kafka_port}") \
         .option("topic", output_topic) \
         .save()
     
@@ -96,7 +97,7 @@ def process_row(row):
 df = spark \
   .readStream \
   .format("kafka") \
-  .option("kafka.bootstrap.servers", "kafka:29092") \
+  .option("kafka.bootstrap.servers", f"{server_ip}:{kafka_port}") \
   .option("subscribe", input_topic) \
   .load()
 df.selectExpr("CAST(value AS STRING)")
