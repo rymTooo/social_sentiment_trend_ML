@@ -72,8 +72,9 @@ def process_row(row):
         print(row)
         print("exit ---------------------")
         return 0
-    df = pandas.DataFrame(json.loads(row[0]['value_string']))
-    df['text'] = df['snippet']
+    data_dict = json.loads(row[0]['value_string'])
+    df = pandas.DataFrame([data_dict])
+    # df['text'] = df['snippet']
     print(df)
     predictions = loaded_model.predict(df[['text']])
     print(predictions)
@@ -101,8 +102,8 @@ df = spark \
   .option("subscribe", input_topic) \
   .load()
 df.selectExpr("CAST(value AS STRING)")
-df = df.withColumn("value_string", col("value").cast("string"))
 df.printSchema()
+df = df.withColumn("value_string", col("value").cast("string"))
 
 
 query = df.writeStream \
