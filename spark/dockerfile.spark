@@ -6,8 +6,13 @@ COPY requirements.txt ./
 # Install Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app/ /opt/spark-job/
+# COPY app/ /opt/spark-job/
 
-COPY resources/sample_data.csv /opt/spark-job/sample_data.csv
+# might be useful to install kafka package on start
+# USER root
+# RUN install_packages curl
 
-COPY deploy_spark/run.sh /opt/bitnami/spark/
+# RUN curl https://repo1.maven.org/maven2/org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.1 --output /opt/bitnami/spark/jars/org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.1
+
+COPY run.sh /opt/bitnami/spark/
+COPY run_test.sh /opt/bitnami/spark/
