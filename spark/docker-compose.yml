@@ -1,9 +1,6 @@
 services:
   spark-master:
-    build:
-      context: .
-      dockerfile: dockerfile.spark
-    image: spark-master
+    image: bitnami/spark:3.4.3
     container_name: "spark-master"
     environment:
       - SPARK_MODE=master
@@ -16,7 +13,6 @@ services:
       - "${SPARK_MASTER_PORT}:7077"
       - "${SPARK_MASTER_UI_PORT}:8080"
     volumes:
-      - ./app/:/opt/spark-job/
       - ./src:/src
       - ./data:/data
       - ./output:/output
@@ -37,9 +33,6 @@ services:
       - SPARK_MODE=worker
       - SPARK_LOCAL_IP=spark-worker-a
 #     - SPARK_USER=spark
-    volumes:
-       - ./apps:/opt/spark-apps
-       - ./data:/opt/spark-data
   spark-worker-b:
     image: bitnami/spark:3.4.3
     ports:
@@ -55,6 +48,3 @@ services:
       - SPARK_DRIVER_MEMORY=1G
       - SPARK_EXECUTOR_MEMORY=1G
       - SPARK_LOCAL_IP=
-    volumes:
-        - ./apps:/opt/spark-apps
-        - ./data:/opt/spark-data
