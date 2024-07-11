@@ -26,59 +26,59 @@
 FROM bitnami/spark:3.5.1
 
 # Optional: custom logging
-COPY log4j2.properties /opt/bitnami/spark/conf/log4j2.properties
+# COPY log4j2.properties /opt/bitnami/spark/conf/log4j2.properties
 
 # USER root
 
 # Install dependencies for building Python
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libssl-dev \
-    zlib1g-dev \
-    libncurses5-dev \
-    libncursesw5-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libgdbm-dev \
-    libdb5.3-dev \
-    libbz2-dev \
-    libexpat1-dev \
-    liblzma-dev \
-    libffi-dev\
-    tk-dev \
-    wget \
-    && apt-get clean
+# RUN apt-get update && apt-get install -y \
+#     build-essential \
+#     libssl-dev \
+#     zlib1g-dev \
+#     libncurses5-dev \
+#     libncursesw5-dev \
+#     libreadline-dev \
+#     libsqlite3-dev \
+#     libgdbm-dev \
+#     libdb5.3-dev \
+#     libbz2-dev \
+#     libexpat1-dev \
+#     liblzma-dev \
+#     libffi-dev\
+#     tk-dev \
+#     wget \
+#     && apt-get clean
 
-# Download and install Python 3.11.9
-RUN wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz \
-    && tar xzf Python-3.11.9.tgz \
-    && cd Python-3.11.9 \
-    && ./configure --enable-optimizations \
-    && make altinstall \
-    && cd .. \
-    && rm -rf Python-3.11.9 Python-3.11.9.tgz
+# # Download and install Python 3.11.9
+# RUN wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz \
+#     && tar xzf Python-3.11.9.tgz \
+#     && cd Python-3.11.9 \
+#     && ./configure --enable-optimizations \
+#     && make altinstall \
+#     && cd .. \
+#     && rm -rf Python-3.11.9 Python-3.11.9.tgz
 
-# Set Python 3.11.9 as the default Python version
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.11 1 \
-    && update-alternatives --set python3 /usr/local/bin/python3.11
+# # Set Python 3.11.9 as the default Python version
+# RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.11 1 \
+#     && update-alternatives --set python3 /usr/local/bin/python3.11
 
-# Verify the installation
-RUN python3 --version
+# # Verify the installation
+# RUN python3 --version
 
-# Install pip for Python 3.11
-RUN wget https://bootstrap.pypa.io/get-pip.py \
-    && python3 get-pip.py \
-    && rm get-pip.py
+# # Install pip for Python 3.11
+# RUN wget https://bootstrap.pypa.io/get-pip.py \
+#     && python3 get-pip.py \
+#     && rm get-pip.py
 
 
 COPY requirements.txt ./
 # Install Python packages
 RUN pip install -r requirements.txt
 
-COPY run.sh /opt/spark/
+COPY run.sh /opt/bitnami/spark/
 COPY run_test.sh /opt/bitnami/spark/
 
-RUN chmod +777 /opt/spark/run.sh
-RUN chmod +777 run_test.sh
+# RUN chmod +777 /opt/spark/run.sh
+# RUN chmod +777 run_test.sh
 
 # ENTRYPOINT [ "./run.sh" ]
