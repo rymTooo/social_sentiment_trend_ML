@@ -10,15 +10,36 @@ import nltk
 from pyspark.sql.functions import from_json
 import json
 from dotenv import load_dotenv
+from pyspark import SparkConf
 
 
 # might need to change localhost to something else
-spark = SparkSession \
-    .builder \
-    .master("local") \
-    .appName("StructuredNetworkWordCount") \
-    .config("spark.driver.host", "spark-master")\
+spark_packages = [
+    "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0",
+    "org.apache.kafka:kafka-clients:3.2.1",
+    "org.apache.spark:spark-tags_2.12:3.2.0",
+    "org.slf4j:slf4j-api:1.7.29",
+    "org.slf4j:slf4j-log4j12:1.7.29",
+]
+spark_conf = SparkConf()
+spark_conf.set("spark.jars.packages", ",".join(spark_packages))
+spark_conf.set("spark.executor.memory", "500m")
+spark_conf.set("spark.driver.memory", "500m")
+spark_conf.set("spark.executor.cores", "1")
+spark_conf.set("spark.driver.cores", "1")
+spark_conf.set("spark.memory.fraction", "0.8")
+spark_conf.set("spark.cores.max", "1")
+spark_conf.set("spark.executor.instances", "2")
+spark_conf.set("spark.driver.host", "10.0.1.54")
+spark_conf.set("spark.driver.bindAddress", "0.0.0.0")
+spark_conf.set("spark.sql.streaming.forceDeleteTempCheckpointLocation", True)
+
+spark = (
+    SparkSession.builder.master("spark://10.0.1.54:27077")
+    .appName("sentiment analysis on tweet")
+    .config(conf=spark_conf)
     .getOrCreate()
+)
 
 #set env
 load_dotenv()
@@ -72,6 +93,10 @@ def process_row(row):
         print(row)
         print("exit ---------------------")
         return 0
+    print(row)
+    print('type of row[0] .. ', type(row[0]))
+    print("this is row type >> ", type(row))
+    print("\n\n this is this >>", row[0])
     data_dict = json.loads(row[0]['value_string'])
     df = pandas.DataFrame([data_dict])
     # df['text'] = df['snippet']

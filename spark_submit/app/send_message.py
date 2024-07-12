@@ -16,21 +16,18 @@ print("kafka port >> ", kafka_port)
 
 # Create a Kafka producer
 producer = KafkaProducer(
-    bootstrap_servers=f'{server_ip}:{kafka_port}',
-    value_serializer=lambda v: str(v).encode('utf-8')
+    bootstrap_servers=f'10.0.1.54:{kafka_port}',
+    value_serializer=lambda v: str(v).encode('utf-8'),
+    key_serializer=lambda v: str(v).encode('utf-8')
 )
 #locate kafka server by KAFKA_ADVERTISED_LISTENERS variable
 
 # Define the topic
 topic = 'raw-data-topic'
+print('send to >> ', topic)
 df = pd.DataFrame(
     {
-        "snippet":["this is example tweeet number 1 #first surely it is good", 
-                "this is the second one bad and worse as hell", 
-                "123"],
-        "query":["tech",
-                 "tech",
-                 "tech"]
+        "snippet":["this is example tweeet number 1 #first surely it is good"]
     }
 )
 # df = pd.read_csv("resources/sample_data.csv")[['text']]
@@ -38,8 +35,8 @@ df = pd.DataFrame(
 
 json_data = df.to_json(orient='records')
 print("this is the data we sending >> \n", json_data)
-
-producer.send(topic, value = json_data)
+key = 'hashtag'
+producer.send(topic, value = json_data,key=key)
 # Close the producer
 producer.flush()
 producer.close()

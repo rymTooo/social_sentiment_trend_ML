@@ -34,7 +34,7 @@ spark_conf.set("spark.driver.bindAddress", "0.0.0.0")
 spark_conf.set("spark.sql.streaming.forceDeleteTempCheckpointLocation", True)
 
 spark = (
-    SparkSession.builder.master("spark://127.0.0.1:27077")
+    SparkSession.builder.master("spark://localhost:27077")
     .appName("sentiment analysis on tweet 2")
     .config(conf=spark_conf)
     .getOrCreate()
@@ -82,11 +82,12 @@ client.fget_object(bucket_name, object_name, download_path)
 print(f"File '{object_name}' downloaded successfully to '{download_path}'.")
 """
 
-results = []
+
 
 
 
 def process_row(row):
+    results = []
     if row == None or len(row) <= 0:
         print(row)
         print("exit ---------------------")
