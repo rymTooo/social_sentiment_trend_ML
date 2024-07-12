@@ -14,6 +14,7 @@ from pyspark.sql.functions import col
 server_ip = ""
 kafka_port = ""
 mlflow_port = ""
+spark_master_port = ""
 input_topic = "raw-data-topic"
 output_topic = "prediction-topic"
 
@@ -35,10 +36,11 @@ def create_spark_session(master_url):
 
 
 def run_test(spark):
-    load_env()
+    # load_env()
     print(server_ip)
     print(mlflow_port)
     print(kafka_port)
+    print(spark_master_port)
 
     #define kafka topic
     
@@ -73,14 +75,6 @@ def run_test(spark):
         ).start()
 
     query.awaitTermination()
-    # data = [("Alice", 1), ("Bob", 2), ("Charlie", 3)]
-    # columns = ["Name", "Value"]
-    
-    # df = spark.createDataFrame(data, columns)
-    # df.show()
-    # test = pd.DataFrame({'text':['tesxt']})
-    # df_transformed = df.withColumn("Value", df["Value"] * 2)
-    # df_transformed.show()
 
 
 def process_row(row,loaded_model,spark):
@@ -95,7 +89,7 @@ def process_row(row,loaded_model,spark):
     except Exception as error:
         return error
     df['text'] = df['snippet']
-    print(df)
+    print(df[['text']])
     predictions = loaded_model.predict(df[['text']])
     print(predictions)
     # results.append({"text": predictions['text'], "label": predictions['label']})
@@ -135,8 +129,8 @@ def create_config():
     spark_conf.set("spark.memory.fraction", "0.8")
     spark_conf.set("spark.cores.max", "1")
     spark_conf.set("spark.executor.instances", "2")
-    # spark_conf.set("spark.driver.host", "localhost")
-    # spark_conf.set("spark.driver.bindAddress", "0.0.0.0")
+    spark_conf.set("spark.driver.host", f"{server_ip}")
+    spark_conf.set("spark.driver.bindAddress", "0.0.0.0")
     spark_conf.set("spark.sql.streaming.forceDeleteTempCheckpointLocation", True)
 
     return spark_conf
@@ -146,13 +140,16 @@ def load_env():
     global server_ip
     global mlflow_port
     global kafka_port
+    global spark_master_port
     server_ip = os.getenv('SERVER_IP')
     mlflow_port = os.getenv('MLFLOW_PORT')
     kafka_port = os.getenv('KAFKA_CLIENT_PORT')
+    spark_master_port = os.getenv('SPARK_CLUSTER_MASTER_PORT')
 
 
 def main():
-    master_url = "spark://localhost:27077"
+    load_env()
+    master_url = f"spark://{server_ip}:{spark_master_port}"
     spark = create_spark_session(master_url)
     
     try:
