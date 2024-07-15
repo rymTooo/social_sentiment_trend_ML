@@ -1,0 +1,183 @@
+def notifyLINE(status) {
+    def token = "o6yuYkuBhvzKKcRsO5LSckQDXTzpny41GwQ03uGXSHI"
+    def jobName = env.JOB_NAME +' '+env.BRANCH_NAME 
+    def buildNo = env.BUILD_NUMBER
+    def stickerIdFailureList = ["2005","2007","2008","2019","2018","2020","2024","2022"]  
+    def stickerIdSuccessList = ["1989","1993","1998","1991","1992","2003"]  
+    def url = 'https://notify-api.line.me/api/notify'
+    def stickerPackageId="446"
+    Collections.shuffle stickerIdSuccessList
+    stickerId=stickerIdSuccessList.first()
+    if(status=="Failed"){
+        Collections.shuffle stickerIdFailureList
+        stickerId=stickerIdFailureList.first()
+    }
+    def message = "${env.JOB_NAME}\r\nMicroservice Name : ${MicroserviceName}\r\nVersion: ${Version}\r\nBranch: ${Branch}\r\nBuild and Deploy #${buildNo} ${status} \r\n"
+    sh "curl ${url} -H 'Authorization: Bearer ${token}' -F 'message=${message}' -F 'stickerPackageId=${stickerPackageId}' -F 'stickerId=${stickerId}'"
+}
+// build parameter in jenkins can be refer here
+pipeline {
+   agent { node "MPM_MetricFusion_Builder" } //destinatio device 
+   
+    environment { //set env
+        // scannerHome = tool 'SonarQ Scanner' //scan code for quality 
+        dockerImage = ''
+        // HARBOR_CREDENTIAL = credentials('harbor')
+    }
+   
+    stages { //stage = column 
+        stage ('Prepare Job') { //header 
+            steps {
+                script {//add description to ui page
+                    currentBuild.description = "Version: ${Version}\nBranch: ${Branch}"
+                }
+            }
+        }
+        stage('Git Pull'){
+            steps {
+
+               checkout([$class: 'GitSCM', //config
+                    branches: [[name: "${Branch}"]], 
+                    doGenerateSubmoduleConfigurations: false, 
+                    extensions: [],
+                    submoduleCfg: [], 
+                    userRemoteConfigs: [[credentialsId: "gitlab-jenkins-user-password", url: "http://192.168.140.91/internship/social-sentiment-trends/Sentiment-Analysis.git"]]])
+            }// change url and loop through
+        }
+        // stage('SonarQube Analysis'){ //scan code
+        //     steps {
+        //     withSonarQubeEnv('SonarQuebe') { 
+                
+        //         sh "${scannerHome}/bin/sonar-scanner \
+        //          -Dsonar.projectKey=mpm-${MicroserviceName} \
+        //          -Dsonar.sources=./${MicroserviceName} \
+        //          -Dsonar.projectVersion=${Version}"
+        //         }
+        //     }
+        // }
+        // stage('Build Image'){
+        //     steps {
+        //         script { //sh = execute in node device (not in jenkins)
+        //             sh "DOCKER_BUILDKIT=1 docker build -f deploy/Dockerfile -t ${ImageRegistryURL}/${MicroserviceName}:${Version} --build-arg BUILD_ID=pre_${MicroserviceName} ."
+        //         }
+        //     }
+        // }
+        // stage('Push image to Image Registry'){
+        //     steps{
+        //         script {
+        //             sh '''
+        //                 echo $HARBOR_CREDENTIAL_PSW | \
+        //                 docker login harbor.rvconnex.com -u $HARBOR_CREDENTIAL_USR --password-stdin
+        //             '''
+        //             sh "docker push ${ImageRegistryURL}/${MicroserviceName}:${Version}"
+        //         }
+        //     }
+        // }
+
+        // stage('Deploy') {
+        //     steps {
+        //         script {
+        //             // Using the SSH credentials
+        //             def env = params.DeployToEnv
+        //             def DEPLOY_HOSTS = [
+        //                 'Develop': 'anawatt@10.0.1.57',
+        //                 'Production': 'administrator@192.168.140.221'
+        //                 ]
+        //             def DEPLOY_CREDS = [
+        //                 'Develop': 'ssh_10.0.1.57_user_anawatt',
+        //                 'Production': 'ssh_192.168.140.221_user_administrator'
+        //                 ]
+
+        //             def DEV_OPS_BRANCH = [
+        //                 'Develop': 'develop',
+        //                 'Production': 'master'
+        //             ]
+                        
+        //             def deployHost = DEPLOY_HOSTS[env]
+        //             def deployCred = DEPLOY_CREDS[env]
+        //             def devopsBranch = DEV_OPS_BRANCH[env]
+
+
+        //             sh """
+        //                 echo $deployCred && \
+        //                 echo $deployHost && \
+        //                 echo $devopsBranch
+        //             """
+
+
+        //             sshagent(credentials: [deployCred]) {
+        //                 // Checkout the specific branch into a sub-directory named "devops-scripts"
+        //                 checkout([$class: 'GitSCM', 
+        //                         branches: [[name: "${devopsBranch}"]], 
+        //                         doGenerateSubmoduleConfigurations: false, 
+        //                         extensions: [
+        //                             [$class: 'RelativeTargetDirectory', relativeTargetDir: "devops-scripts"]
+        //                         ],
+        //                         submoduleCfg: [], 
+        //                         userRemoteConfigs: [[credentialsId: "gitlab-jenkins-user-password", 
+        //                         url: "${DevopsScriptsPath}.git"]]
+        //                 ])
+
+        //                 sh """
+        //                     cd devops-scripts && \
+        //                     sed -i 's#${ImageRegistryURL}/${MicroserviceName}:.*#${ImageRegistryURL}/${MicroserviceName}:${Version}#g' docker-compose/${MicroserviceName}/deploy/docker-compose.yml && \
+        //                     ssh ${deployHost} 'mkdir -p /srv/jenkins/devops-scripts/${MicroserviceName}' && \
+        //                     scp -r docker-compose/${MicroserviceName} ${deployHost}:/srv/jenkins/devops-scripts
+        //                 """
+        //                 // sed = find and replace >> change docker compose file content
+        //                 // shell into anothr node
+
+        //                 sh """
+        //                     ssh ${deployHost} 'bash -s' << 'ENDSSH'
+
+        //                     cd /srv/jenkins/devops-scripts/${MicroserviceName} && \
+        //                     docker compose -f deploy/docker-compose.yml --project-directory . down --remove-orphans && \
+        //                     docker compose -f deploy/docker-compose.yml --project-directory . up -d && \
+        //                     rm -rf /srv/jenkins/devops-scripts
+        //                 """
+        //                 //
+
+
+        //                 // Clean up the directory after pushing changes
+        //                 sh "rm -rf devops-scripts"
+        //             }
+        //         }
+        //     }
+        // }
+
+            
+
+        // stage('Cleanup'){
+        //     // for cleaning builder (in multi stage build)
+        //     steps {
+        //         script {
+        //             echo 'Cleanup'
+        //             sh """
+        //             docker images \
+        //                 | awk '{ print \$1,\$3 }' \
+        //                 | grep ${MicroserviceName} \
+        //                 | awk '{print \$2 }' \
+        //                 | xargs -I {} docker rmi -f {}
+        //             """
+        //             sh """
+        //             docker image prune -f \
+        //                 --filter label=stage=builder \
+        //                 --filter label=build=pre_${MicroserviceName}
+        //             """
+
+        //           }
+        //         }
+        //     }
+        }
+    // post {   
+    //      success {  
+    //          notifyLINE("Succeed")
+    //          //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "successful CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";
+    //      }  
+    //      failure {  
+    //          notifyLINE("Failed")
+
+    //          //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";  
+    //      }   
+    // }  
+}
