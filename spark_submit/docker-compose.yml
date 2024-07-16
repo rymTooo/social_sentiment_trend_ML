@@ -6,11 +6,14 @@ services:
     image: spark_submit
     container_name: "spark-submit"
     network_mode: host
-    # entrypoint: ["python", "/opt/spark-job/app.py"]
+    entrypoint: ["python", "/opt/spark-job/spark_job.py"]
     environment:
       - SPARK_MODE=master
       - SPARK_USER=spark
-      # - SPARK_LOCAL_IP=${SERVER_IP}
+      - SPARK_MASTER_PORT=${SPARK_SUBMIT_PORT}
+      - SPARK_MASTER_WEBUI_PORT=${SPARK_SUBMIT_UI_PORT}
+      - SPARK_DRIVER_PORT=${SPARK_SUBMIT_DRIVER_PORT}
+      - SPARK_BLOCKMANAGER_PORT=${SPARK_SUBMIT_BLOCKMANAGER_PORT}
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
