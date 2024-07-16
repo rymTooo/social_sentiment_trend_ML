@@ -7,29 +7,73 @@ import pickle
 from dotenv import load_dotenv
 import pandas as pd
 from tokenizer import Thai_tokenizer
+import requests
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
 
 
 class Typhoon_model:
-    def __init__(self, model_name="scb10x/typhoon-7b", num_labels=3):
-        # self.model_name = model_name
-        # self.num_labels = num_labels
+    def __init__(self, model_name="typhoon-v1.5-instruct",url = 'https://api.opentyphoon.ai/v1/chat/completions',api_key = 'sk-ATxbxvWc2jsDEnUt4p19nzPFXzQKNLnp2PB9RNLjck9htbW4',num_labels=3):
+        self.url = url
+        self.model_name = model_name
+        self.num_labels = num_labels
+        self.api_key = api_key
         # self.tokenizer = AutoTokenizer.from_pretrained("scb10x/typhoon-7b")
         # # self.model = AutoModelForCausalLM.from_pretrained("scb10x/typhoon-7b")
         # self.pipeline = pipeline("sentiment-analysis", model=model_name, tokenizer=self.tokenizer)
-        messages = [
-            {"role": "user", "content": "Who are you?"},
-        ]
-        pipe = pipeline("text-generation", model="scb10x/typhoon-v1.5-72b")
-        pipe(messages)
+        # messages = [
+        #     {"role": "user", "content": "Who are you?"},
+        # ]
+        # pipe = pipeline("text-generation", model="scb10x/typhoon-v1.5-72b")
+        # pipe(messages)
+
+
+    def make_request(self, message, url, api_key):
+        # url = url
+        # api_key = api_key
+        # # options = options
+        # header = {
+        #     'Content-Type': 'application/json',
+        #     'Authorization': f'Bearer {api_key}'
+        # }
+        # data={
+        #     "model": f"{self.model_name}",
+        #     "messages": [
+        #     {
+        #         "role": "system",
+        #         "content": "You are a helpful assistant. You must answer only in Thai."
+        #     },
+        #     {
+        #         "role": "user",
+        #         "content": f"{message}"
+        #     }
+        #     ],
+        #     "max_tokens": 512,
+        #     "temperature": 0.6,
+        #     "top_p": 0.95,
+        #     "repetition_penalty": 1.05,
+        #     "stream": false
+        # }
+        # response = requests.get(url=url, headers=header, data=data)
+        # print(response)
+        # print(type(response.text))
+        client = ChatOpenAI(base_url='https://api.opentyphoon.ai/v1',
+                            model='typhoon-instruct',
+                            api_key=api_key)
+        resp = client.invoke([HumanMessage(content=message)])
+        print(resp.content)
+    
 
     def tokenize_function(self, examples):
         return self.tokenizer(examples["text"], padding="max_length", truncation=True)
 
     def predict(self, input_text):
-        prediction = self.pipeline(input_text)[0]
-        print(prediction)
-        if prediction['score'] <= 0.8:
-            prediction['label'] = 'NEUTRAL'
+        # prediction = self.pipeline(input_text)[0]
+        # print(prediction)
+        # if prediction['score'] <= 0.8:
+        #     prediction['label'] = 'NEUTRAL'
+
+        prediction = self.make_request(input_text, self.url, self.api_key)
         return prediction
 
     def train(self, train_dataset, test_dataset, output_dir="./results", epochs=3, batch_size=16, learning_rate=1e-5):
@@ -82,7 +126,7 @@ test_sentence = """โครงสร้างเศรษฐกิจของ�
 ส้มโอ ลำไย และลิ้นจี่ ซึ่งทั้งคู่เป็นผลไม้สำคัญที่สามารถปลูกได้ในทุกอำเภอของจังหวัด"""
 
 typhoon = Typhoon_model()
-typhoon.predict(test_sentence)
+typhoon.predict("ขอสูตรไก่ย่าง")
 
 
 
