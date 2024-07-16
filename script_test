@@ -46,11 +46,14 @@ pipeline {
         stage('Build Image'){
             steps {
                 script { //sh = execute in node device (not in jenkins)
+                    // def subfolders = new File('deploy').listFiles().findAll { it.isDirectory() }
+                    // subfolders.each { subfolder ->
+                    //     echo subfolder
+                    // }
                     sh "sudo docker build -f deploy/${MicroserviceName}/dockerfile -t ${ProjectName}/${MicroserviceName}:${Version} ." // --build-arg BUILD_ID=pre_${MicroserviceName} ."
                 }
                 script{
                     sh "sudo docker images | grep ${ProjectName}"
-                    sh "pwd"
                 }
             }
         }
@@ -59,7 +62,6 @@ pipeline {
             steps {
                 script {
                     sh "pwd"
-                    // sh "mkdir -p /srv/jenkins/devops-scripts/${MicroserviceName}" //microservice name : mlflow
                     sh """
                         cd deploy && \
                         sed -i 's#${ProjectName}/${MicroserviceName}:*#${ProjectName}/${MicroserviceName}:${Version}#g' ${MicroserviceName}/docker-compose.yml
@@ -69,71 +71,6 @@ pipeline {
                         sudo docker compose -f ${MicroserviceName}/docker-compose.yml down --remove-orphans && \
                         sudo docker compose -f ${MicroserviceName}/docker-compose.yml --env-file .env up -d
                     """
-                    // sh "rm -rf devops-scripts"
-
-
-                    // Using the SSH credentials
-                    // def env = params.DeployToEnv
-                    // def DEPLOY_HOSTS = [
-                    //     'Develop': 'anawatt@10.0.1.57',
-                    //     'Production': 'administrator@192.168.140.221'
-                    //     ]
-                    // def DEPLOY_CREDS = [
-                    //     'Develop': 'ssh_10.0.1.57_user_anawatt',
-                    //     'Production': 'ssh_192.168.140.221_user_administrator'
-                    //     ]
-
-                    // def DEV_OPS_BRANCH = [
-                    //     'Develop': 'develop',
-                    //     'Production': 'master'
-                    // ]
-                        
-                    // def deployHost = //DEPLOY_HOSTS[env]
-                    // def deployCred = //DEPLOY_CREDS[env]
-                    // def devopsBranch = //DEV_OPS_BRANCH[env]
-
-
-                    // sh """
-                    //     echo $deployCred && \
-                    //     echo $deployHost && \
-                    //     echo $devopsBranch
-                    // """
-
-
-                    // sshagent(credentials: [deployCred]) {
-                    //     // Checkout the specific branch into a sub-directory named "devops-scripts"
-                    //     checkout([$class: 'GitSCM', 
-                    //             branches: [[name: "${devopsBranch}"]], 
-                    //             doGenerateSubmoduleConfigurations: false, 
-                    //             extensions: [
-                    //                 [$class: 'RelativeTargetDirectory', relativeTargetDir: "devops-scripts"]
-                    //             ],
-                    //             submoduleCfg: [], 
-                    //             userRemoteConfigs: [[credentialsId: "gitlab-jenkins-user-password", 
-                    //             url: "${DevopsScriptsPath}.git"]]
-                    //     ])
-
-                    //     sh """
-                    //         cd devops-scripts && \
-                    //         sed -i 's#${ImageRegistryURL}/${MicroserviceName}:.*#${ImageRegistryURL}/${MicroserviceName}:${Version}#g' docker-compose/${MicroserviceName}/deploy/docker-compose.yml && \
-    
-                    //     """
-                    //     // ssh ${deployHost} 'mkdir -p /srv/jenkins/devops-scripts/${MicroserviceName}' && \
-                    //     // scp -r docker-compose/${MicroserviceName} ${deployHost}:/srv/jenkins/devops-scripts
-                    //     // sed = find and replace >> change docker compose file content
-                    //     // shell into anothr node
-
-                    //     sh """
-                    //         cd /srv/jenkins/devops-scripts/${MicroserviceName} && \
-                    //         docker compose -f deploy/docker-compose.yml --project-directory . down --remove-orphans && \
-                    //         docker compose -f deploy/docker-compose.yml --project-directory . up -d && \
-                    //         rm -rf /srv/jenkins/devops-scripts
-                    //     """
-                    //     //ssh ${deployHost} 'bash -s' << 'ENDSSH'
-
-
-                    //     // Clean up the directory after pushing changes
-                    //     sh "rm -rf devops-scripts"
                 }
             }
         }
