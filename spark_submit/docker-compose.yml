@@ -1,0 +1,22 @@
+services:
+  spark-submit:
+    build:
+      context: .
+      dockerfile: dockerfile.spark
+    image: spark_submit
+    container_name: "spark-submit"
+    network_mode: host
+    # entrypoint: ["python", "/opt/spark-job/app.py"]
+    environment:
+      - SPARK_MODE=master
+      - SPARK_USER=spark
+      # - SPARK_LOCAL_IP=${SERVER_IP}
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./app/:/opt/spark-job/
+      - ./src:/src
+      - ./data:/data
+      - ./output:/output

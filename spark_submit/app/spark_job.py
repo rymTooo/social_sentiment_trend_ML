@@ -10,14 +10,35 @@ import nltk
 from pyspark.sql.functions import from_json
 import json
 from dotenv import load_dotenv
+from pyspark import SparkConf
 
-# might need to change localhost to something else
-spark = SparkSession \
-    .builder \
-    .master("local") \
-    .appName("StructuredNetworkWordCount") \
-    .config("spark.driver.host", "spark-master")\
+spark_packages = [
+    "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1",
+    "org.apache.kafka:kafka-clients:3.2.1",
+    "org.apache.spark:spark-tags_2.12:3.2.0",
+    "org.slf4j:slf4j-api:1.7.29",
+    "org.slf4j:slf4j-log4j12:1.7.29",
+]
+
+spark_conf = SparkConf()
+spark_conf.set("spark.jars.packages", ",".join(spark_packages))
+spark_conf.set("spark.executor.memory", "500m")
+spark_conf.set("spark.driver.memory", "500m")
+spark_conf.set("spark.executor.cores", "1")
+spark_conf.set("spark.driver.cores", "1")
+spark_conf.set("spark.memory.fraction", "0.8")
+spark_conf.set("spark.cores.max", "1")
+spark_conf.set("spark.executor.instances", "2")
+spark_conf.set("spark.driver.host", "10.0.1.54")
+spark_conf.set("spark.driver.bindAddress", "0.0.0.0")
+spark_conf.set("spark.sql.streaming.forceDeleteTempCheckpointLocation", True)
+
+spark = (
+    SparkSession.builder.master("spark://localhost:27077")
+    .appName("sentiment analysis on tweet 2")
+    .config(conf=spark_conf)
     .getOrCreate()
+)
 
 #set env
 load_dotenv()
@@ -61,9 +82,12 @@ client.fget_object(bucket_name, object_name, download_path)
 print(f"File '{object_name}' downloaded successfully to '{download_path}'.")
 """
 
-results = []
+
+
+
 
 def process_row(row):
+    results = []
     if row == None or len(row) <= 0:
         print(row)
         print("exit ---------------------")
@@ -73,25 +97,25 @@ def process_row(row):
         df = pandas.DataFrame(json.loads(row[0]['value_string']))
     except Exception as error:
         return error
-    df['text'] = df['snippet']
-    print(df)
-    predictions = loaded_model.predict(df[['text']])
-    print(predictions)
-    # results.append({"text": predictions['text'], "label": predictions['label']})
-    results.append({"value": predictions.to_json(orient='records'), "key":key})
+    # df['text'] = df['snippet']
+    # print(df)
+    # predictions = loaded_model.predict(df[['text']])
+    # print(predictions)
+    # # results.append({"text": predictions['text'], "label": predictions['label']})
+    # results.append({"value": predictions.to_json(orient='records'), "key":key})
     
-    predictions_df = spark.createDataFrame(results)
-    predictions_df.printSchema()
-    # Write predictions to Kafka
-    predictions_df.selectExpr("CAST(value AS STRING)", "CAST(key AS STRING)") \
-        .write \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", f"{server_ip}:{kafka_port}") \
-        .option("topic", output_topic) \
-        .save()
+    # predictions_df = spark.createDataFrame(results)
+    # predictions_df.printSchema()
+    # # Write predictions to Kafka
+    # predictions_df.selectExpr("CAST(value AS STRING)", "CAST(key AS STRING)") \
+    #     .write \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", f"{server_ip}:{kafka_port}") \
+    #     .option("topic", output_topic) \
+    #     .save()
     
 
-    return predictions_df
+    return 0 #  predictions_df
 
 
 #**** may use read instead of readstream ****

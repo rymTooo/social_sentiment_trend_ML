@@ -1,0 +1,20 @@
+FROM bitnami/spark:3.5.1
+
+USER root
+
+COPY requirements.txt ./
+# Install Python packages
+RUN pip install -r requirements.txt
+
+COPY run.sh /opt/bitnami/spark/
+COPY run_test.sh /opt/bitnami/spark/
+
+
+# :: loading settings :: url = jar:file:/opt/bitnami/spark/jars/ivy-2.5.1.jar!/org/apache/ivy/core/settings/ivysettings.xml
+# Ivy Default Cache set to: /root/.ivy2/cache
+# The jars for the packages stored in: /root/.ivy2/jars
+
+# RUN chmod +777 /opt/spark/run.sh
+# RUN chmod +777 run_test.sh
+
+# ENTRYPOINT [ "./run.sh" ]

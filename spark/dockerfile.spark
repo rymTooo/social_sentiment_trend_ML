@@ -1,18 +1,5 @@
-FROM bitnami/spark:3.4.3
+FROM bitnami/spark:3.5.1
 
-USER root
 
-COPY requirements.txt ./
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
-
-# COPY app/ /opt/spark-job/
-
-# might be useful to install kafka package on start
-# USER root
-# RUN install_packages curl
-
-# RUN curl https://repo1.maven.org/maven2/org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.1 --output /opt/bitnami/spark/jars/org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.1
-
-COPY run.sh /opt/bitnami/spark/
-COPY run_test.sh /opt/bitnami/spark/
+# Optional: custom logging
+# COPY log4j2.properties /opt/bitnami/spark/conf/log4j2.properties
