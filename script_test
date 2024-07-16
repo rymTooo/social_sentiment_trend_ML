@@ -59,20 +59,16 @@ pipeline {
             steps {
                 script {
                     sh "pwd"
-                    sh 'ls'
-                    sh 'ifconfig'
                     // sh "mkdir -p /srv/jenkins/devops-scripts/${MicroserviceName}" //microservice name : mlflow
-                    // sh """
-                    //     cd devops-scripts && \
-                    //     sed -i 's#${ImageRegistryURL}/${MicroserviceName}:.*#${ImageRegistryURL}/${MicroserviceName}:${Version}#g' docker-compose/${MicroserviceName}/deploy/docker-compose.yml && \
-    
-                    //     """
-                    // sh """
-                    //     cd /srv/jenkins/devops-scripts/${MicroserviceName} && \
-                    //     docker compose -f deploy/docker-compose.yml --project-directory . down --remove-orphans && \
-                    //     docker compose -f deploy/docker-compose.yml --project-directory . up -d && \
-                    //     rm -rf /srv/jenkins/devops-scripts
-                    // """
+                    sh """
+                        cd deploy && \
+                        sed -i 's#${ProjectName}/${MicroserviceName}:*#${ProjectName}/${MicroserviceName}:${Version}#g' ${MicroserviceName}/docker-compose.yml
+                    """
+                    sh """
+                        cd deploy && \
+                        sudo docker compose -f ${MicroserviceName}/docker-compose.yml down --remove-orphans && \
+                        sudo docker compose -f ${MicroserviceName}/docker-compose.yml --env-file .env up -d
+                    """
                     // sh "rm -rf devops-scripts"
 
 
@@ -138,9 +134,9 @@ pipeline {
 
                     //     // Clean up the directory after pushing changes
                     //     sh "rm -rf devops-scripts"
-                    }
                 }
             }
+        }
 
             
 
@@ -165,16 +161,16 @@ pipeline {
         //           }
         //         }
         //     }
-        }
-    // post {   
-    //      success {  
-    //          notifyLINE("Succeed")
-    //          //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "successful CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";
-    //      }  
-    //      failure {  
-    //          notifyLINE("Failed")
+    }
+    post {   
+         success {  
+             notifyLINE("Succeed")
+             //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "successful CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";
+         }  
+         failure {  
+             notifyLINE("Failed")
 
-    //          //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";  
-    //      }   
-    // }  
+             //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";  
+         }   
+    }  
 }

@@ -16,6 +16,7 @@ services:
       - MINIO_PORT=${MINIO_PORT}
       - MINIO_STORAGE_USE_HTTPS=${MINIO_STORAGE_USE_HTTPS} #True or false
     command: server /data
+    entrypoint: ["bash", "-c", "/app/run.sh"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://${SERVER_IP}:${MINIO_PORT}/minio/health/live"]
       interval: 30s
