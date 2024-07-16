@@ -59,6 +59,8 @@ pipeline {
             steps {
                 script {
                     sh "pwd"
+                    sh 'ls'
+                    sh 'ifconfig'
                     // sh "mkdir -p /srv/jenkins/devops-scripts/${MicroserviceName}" //microservice name : mlflow
                     // sh """
                     //     cd devops-scripts && \
@@ -139,7 +141,6 @@ pipeline {
                     }
                 }
             }
-        }
 
             
 
@@ -165,15 +166,15 @@ pipeline {
         //         }
         //     }
         }
-    post {   
-         success {  
-             notifyLINE("Succeed")
-             //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "successful CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";
-         }  
-         failure {  
-             notifyLINE("Failed")
+    // post {   
+    //      success {  
+    //          notifyLINE("Succeed")
+    //          //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "successful CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";
+    //      }  
+    //      failure {  
+    //          notifyLINE("Failed")
 
-             //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";  
-         }   
-    }  
+    //          //mail bcc: '', body: "<b>Jenkins Report</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'pd.admin@rvconnex.com', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "kunchid.c@rvconnex.com";  
+    //      }   
+    // }  
 }
