@@ -6,18 +6,17 @@ from mlflow.models import infer_signature
 import pickle
 from dotenv import load_dotenv
 import pandas as pd
-from tokenizer import Thai_tokenizer
+# from tokenizer import Thai_tokenizer
 import requests
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
-
+import json
+from langchain_core.prompts import ChatPromptTemplate
 
 class Typhoon_model:
-    def __init__(self, model_name="typhoon-v1.5-instruct",url = 'https://api.opentyphoon.ai/v1/chat/completions',api_key = 'sk-ATxbxvWc2jsDEnUt4p19nzPFXzQKNLnp2PB9RNLjck9htbW4',num_labels=3):
-        self.url = url
+    def __init__(self, model_name="typhoon-v1.5-instruct",num_labels=3):
         self.model_name = model_name
         self.num_labels = num_labels
-        self.api_key = api_key
         # self.tokenizer = AutoTokenizer.from_pretrained("scb10x/typhoon-7b")
         # # self.model = AutoModelForCausalLM.from_pretrained("scb10x/typhoon-7b")
         # self.pipeline = pipeline("sentiment-analysis", model=model_name, tokenizer=self.tokenizer)
@@ -28,40 +27,29 @@ class Typhoon_model:
         # pipe(messages)
 
 
-    def make_request(self, message, url, api_key):
-        # url = url
-        # api_key = api_key
-        # # options = options
-        # header = {
-        #     'Content-Type': 'application/json',
-        #     'Authorization': f'Bearer {api_key}'
-        # }
-        # data={
-        #     "model": f"{self.model_name}",
-        #     "messages": [
-        #     {
-        #         "role": "system",
-        #         "content": "You are a helpful assistant. You must answer only in Thai."
-        #     },
-        #     {
-        #         "role": "user",
-        #         "content": f"{message}"
-        #     }
-        #     ],
-        #     "max_tokens": 512,
-        #     "temperature": 0.6,
-        #     "top_p": 0.95,
-        #     "repetition_penalty": 1.05,
-        #     "stream": false
-        # }
-        # response = requests.get(url=url, headers=header, data=data)
-        # print(response)
-        # print(type(response.text))
-        client = ChatOpenAI(base_url='https://api.opentyphoon.ai/v1',
-                            model='typhoon-instruct',
-                            api_key=api_key)
-        resp = client.invoke([HumanMessage(content=message)])
-        print(resp.content)
+    def make_request(self, message):
+        template = ChatPromptTemplate.from_messages([
+            ("system", ""),
+            ("system", "Task : Your task is to assist with  answer all question and give all detailed about it."),
+            ("system", "Context: You have access to all of knowledge on all thing."),
+            # ("system", "Format: Answer Thai languague only"),
+            ("human", "{user_input}"),
+            ("ai", "Response:"),
+        ])
+        endpoint = 'https://api.opentyphoon.ai/v1/chat/completions'
+        res = requests.post(endpoint, json={
+            "model": "typhoon-v1.5-instruct",
+            "max_tokens": 512,
+            "messages": message,
+            "temperature": 0.4,
+            "top_p": 0.9,
+            "top_k": 0,
+            "repetition_penalty": 1.05,
+            "min_p": 0.05
+        }, headers={
+            "Authorization": "Bearer sk-ATxbxvWc2jsDEnUt4p19nzPFXzQKNLnp2PB9RNLjck9htbW4",
+        })
+        return res
     
 
     def tokenize_function(self, examples):
@@ -120,13 +108,83 @@ class Typhoon_model:
 
         metrics = trainer.evaluate()
         return metrics
-    
-test_sentence = """โครงสร้างเศรษฐกิจของจังหวัดเชียงรายมาจากการเกษตร ป่าไม้ และการประมงเป็นหลัก 
-พืชสำคัญทางเศรษฐกิจของจังหวัดเชียงราย ได้แก่ ข้าวจ้าว ข้าวโพดเลี้ยงสัตว์ สัปปะรด มันสัมปะหลัง 
-ส้มโอ ลำไย และลิ้นจี่ ซึ่งทั้งคู่เป็นผลไม้สำคัญที่สามารถปลูกได้ในทุกอำเภอของจังหวัด"""
 
+    def call_llm(self, message: str):
+        url = "http://192.168.123.110:11434/api/generate"
+        """
+        Call ollama API
+        """
+        print(f"Call LLM with message: [{message}]")
+        payload = json.dumps({
+        # "model": "llama3",
+        "model": "llama3-typhoon-8b:latest",
+        "prompt": message,
+        "stream": False
+        })
+        headers = {
+        'Content-Type': 'application/json'
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+        response_json = json.loads(response.text)
+        return response_json['response']
+        
+# test_sentence = """โครงสร้างเศรษฐกิจของจังหวัดเชียงรายมาจากการเกษตร ป่าไม้ และการประมงเป็นหลัก 
+# พืชสำคัญทางเศรษฐกิจของจังหวัดเชียงราย ได้แก่ ข้าวจ้าว ข้าวโพดเลี้ยงสัตว์ สัปปะรด มันสัมปะหลัง 
+# ส้มโอ ลำไย และลิ้นจี่ ซึ่งทั้งคู่เป็นผลไม้สำคัญที่สามารถปลูกได้ในทุกอำเภอของจังหวัด"""
+messages = [
+        {
+            "role": "system",
+            "content": """You are a good assistant named Typhoon.
+                 Your answer can either be 'good' or 'bad' or 'neutral' only.
+                 You will choose your answer based on the sentiment of the input from user.
+                 You will also give the confidence score of your answer in the format of 'answer : [sentiment] , confident score : [score]'.
+                 The confident score will be between 0 and 1. 
+                 1 being the most confident and 0 being the least confident."""
+        },
+        {
+            "role": "user",
+            "content": "ขอสูตรไก่ย่าง"
+        }
+        ]
+template = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. You will give the answer in the format of { 'sentiment' : 'good', 'confident_score' : '0.9'}. the sentiment will be either 'good', 'bad', or 'neutral' and confident_score will be between 1 and 0. "
+        },
+        {
+            "role": "user",
+            "content": "ขอสูตรไก่ย่าง"
+        },
+        {
+            "role": "assistant",
+            "content": "{ 'sentiment' : 'good', 'confident_score' : '0.9'}"
+        },
+        {
+            "role": "user",
+            "content": "โจรวิ่งหนีตำรวจลงคลอง"
+        },
+        {
+            "role": "assistant",
+            "content": "{ 'sentiment' : 'bad', 'confident_score' : '0.9'}"
+        },
+        {
+            "role": "user",
+            "content": "ป่าไม้ในประเทศไทย"
+        },
+        {
+            "role": "assistant",
+            "content": "{ 'sentiment' : 'neutral', 'confident_score' : '1'}"
+        },
+        {
+            "role":"user",
+            "content":"ผู้ชายคนหนึ่งเดินเข้าป่าลึก"
+        }
+        ]
 typhoon = Typhoon_model()
-typhoon.predict("ขอสูตรไก่ย่าง")
+response = typhoon.make_request(template)
+print(json.loads(response.text)['choices'][0]['message']) #
+# {"id":"8a4934fbcde9a8e3-SIN","choices":[{"finish_reason":"stop","index":0,"message":{"content":"{ 'sentiment' : 'neutral', 'confident_score' : '0.8'}","role":"assistant"}}],"created":1721208560,"model":"typhoon-v1.5-instruct","object":"chat.completion","system_fingerprint":null,"usage":{"completion_tokens":21,"prompt_tokens":162,"total_tokens":183}}
 
 
 
