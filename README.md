@@ -1,7 +1,7 @@
 # Sentiment analysis
 <p>This repository include the file necessary in the ML pipeline. The included framework are</p>
 
-This repositoray alone doesn't represent the whole project. The project presentation slide can be found in [Download the PDF](./Social_Sentiment_Trends_Presentation.pdf)
+This repositoray alone doesn't represent the whole project. The project presentation slide can be found in [pdf above](./Social%20Sentiment%20Trends%20Presentation.pdf)
 
     
 - **mlflow** : platform for model management
