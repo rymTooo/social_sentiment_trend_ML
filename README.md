@@ -1,5 +1,7 @@
 # Sentiment analysis
-<p>This repository include the file necessary in the ML pipeline. The included platform? framework? are</p>
+<p>This repository include the file necessary in the ML pipeline. The included framework are</p>
+
+This repositoray alone doesn't represent the whole project. The project presentation slide can be found in 
 
     
 - **mlflow** : platform for model management
